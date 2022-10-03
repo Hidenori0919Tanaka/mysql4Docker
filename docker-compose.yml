@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  db:
+    container_name: mysql-db
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/x86_64
+    tty: true
+    ports:
+      - 3306:3306
+    env_file:
+      - ./.env_mysql
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /var/lib/mysql
+      - type: bind
+        source: ./init
+        target: /docker-entrypoint-initdb.d
+
+  phpmyadmin:
+    container_name: mysql-phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    depends_on:
+      - db
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOSTS=db
+      - PMA_USER=root
+      - PMA_PASSWORD=pwd
+    ports:
+      - "3002:80"
+    volumes:
+      - ./docker/phpmy/sessions:/sessions
+      
+volumes:
+  mysql-data:
+    name: mysql-db-volume
